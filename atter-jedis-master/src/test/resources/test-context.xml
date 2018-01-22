@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+
+
+          http://www.springframework.org/schema/context
+          http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+  <context:component-scan base-package="atter.*"/>
+  <context:property-placeholder ignore-unresolvable="true" location="classpath:redis.properties"/>
+
+  <!-- jedisPool配置信息 -->
+  <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+    <property name="maxTotal" value="${redis.maxTotal}"/>
+    <!-- 控制一个pool可分配多少个jedis实例 -->
+    <property name="maxIdle" value="${redis.maxIdle}"/>
+    <!-- 控制一个pool最多有多少个状态为idle(空闲)的jedis实例 -->
+    <property name="minIdle" value="${redis.minIdle}"/>
+    <!-- 控制一个pool初始化的jedis实例 -->
+    <property name="maxWaitMillis" value="${redis.maxWait}"/>
+    <!-- 表示当borrow一个jedis实例时，最大的等待时间，如果超过等待时间，则直接抛出JedisConnectionException -->
+    <property name="testOnBorrow" value="true"/>
+    <!-- 在borrow一个jedis实例时，是否提前进行validate操作；如果为true，则得到的jedis实例均是可用的 -->
+  </bean>
+
+  <bean id="jedisPool" class="redis.clients.jedis.JedisPool" destroy-method="destroy">
+    <constructor-arg ref="jedisPoolConfig"/>
+    <constructor-arg value="${redis.ip}"/>
+    <constructor-arg type="int" value="${redis.port}"/>
+    <constructor-arg type="int" value="${redis.timeout}"/>
+  </bean>
+
+  <bean id="singleJedisAdapter" class="atter.jedis.adapter.SingleJedisAdapter">
+    <property name="pool" ref="jedisPool"/>
+  </bean>
+
+  <bean id="cacheTemplate" class="atter.jedis.RedisCacheTemplate">
+    <property name="jedisAdapter" ref="singleJedisAdapter"/>
+    <property name="lockTimeout" value="30"/>
+  </bean>
+
+</beans>

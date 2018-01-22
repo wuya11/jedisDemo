@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+
+					    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+    <!-- 引入注解 -->
+    <context:annotation-config/>
+    <!-- 扫描包类 将标注的Spring注解类自动转化为bean -->
+    <context:component-scan base-package="atter.*"/>
+    <!-- 载入属性文件 -->
+    <context:property-placeholder ignore-unresolvable="true" location="classpath*:*.properties"/>
+
+    <bean id="shardedJedisPool" class="redis.clients.jedis.ShardedJedisPool">
+        <constructor-arg index="0" ref="poolConfig"/>
+        <constructor-arg index="1">
+            <list>
+                <bean class="redis.clients.jedis.JedisShardInfo">
+                    <property name="password" value="${redis1.pass}"/>
+
+                    <constructor-arg index="0" value="${redis1.ip}"/>
+                    <constructor-arg index="1" value="${redis1.port}" type="int"/>
+                    <constructor-arg index="2" value="${redis1.timeout}" type="int"/>
+                    <constructor-arg index="3" value="${redis1.weight}" type="int"/>
+                </bean>
+                <bean class="redis.clients.jedis.JedisShardInfo">
+                    <property name="password" value="${redis2.pass}"/>
+
+                    <constructor-arg index="0" value="${redis2.ip}"/>
+                    <constructor-arg index="1" value="${redis2.port}" type="int"/>
+                    <constructor-arg index="2" value="${redis2.timeout}" type="int"/>
+                    <constructor-arg index="3" value="${redis2.weight}" type="int"/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+    <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxIdle" value="${redis.maxIdle}"/>
+        <property name="maxTotal" value="${redis.maxTotal}"/>
+        <property name="minIdle" value="${redis.minIdle}"/>
+        <property name="testOnBorrow" value="${redis.testOnBorrow}"/>
+    </bean>
+
+</beans>
